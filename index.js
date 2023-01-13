@@ -22,11 +22,20 @@ async function run() {
   try {
     const serviceCollection = client.db("get-shield").collection("services");
     const usersCollection = client.db("get-shield").collection("users");
+    const bookingCollection = client.db("get-shield").collection("bookings");
 
-    //post a service
+    //add a service
     app.post("/service", async (req, res) => {
       const service = req.body;
       const result = await serviceCollection.insertOne(service);
+      res.send(result);
+    });
+
+    //book a service
+    app.post("/bookservice", async (req, res) => {
+      const service = req.body;
+      const result = await bookingCollection.insertOne(service);
+      console.log("booked:", result);
       res.send(result);
     });
 
@@ -34,8 +43,15 @@ async function run() {
     app.get("/services", async (req, res) => {
       const query = {};
       const services = await serviceCollection.find(query).toArray();
-      console.log("---all services are:", services);
       res.send(services);
+    });
+
+    //service details
+    app.get("/servicedetails/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const servicedetails = await serviceCollection.findOne(filter);
+      res.send(servicedetails);
     });
 
     //save a user
