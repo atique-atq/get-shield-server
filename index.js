@@ -25,16 +25,22 @@ async function run() {
 
     //post a service
     app.post("/service", async (req, res) => {
-      console.log("came here to add a service..");
       const service = req.body;
       const result = await serviceCollection.insertOne(service);
       res.send(result);
     });
 
+    //get services
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const services = await serviceCollection.find(query).toArray();
+      console.log("---all services are:", services);
+      res.send(services);
+    });
+
     //save a user
     app.post("/users", async (req, res) => {
       const userInfo = req.body;
-      console.log("came to save user!!!");
 
       //checking if user with same email address already inserted
       const query = { email: userInfo.email };
@@ -66,15 +72,13 @@ async function run() {
 
     //
   } finally {
-    console.log("came in finally");
+    console.log("----single request done---");
   }
 }
 run().catch(console.log);
 
 app.get("/", async (req, res) => {
-  res.send("**** getShield is running *****");
+  res.send("getShield is running");
 });
 
-app.listen(port, () =>
-  console.log(`----- getShield is running on ${port} ----`)
-);
+app.listen(port, () => console.log(`getShield is running on ${port}`));
