@@ -35,8 +35,31 @@ async function run() {
     app.post("/bookservice", async (req, res) => {
       const service = req.body;
       const result = await bookingCollection.insertOne(service);
-      console.log("booked:", result);
       res.send(result);
+    });
+
+    //get booking information
+    app.get("/bookservice", async (req, res) => {
+      const query = { clientEmail: req.query?.email };
+      const bookings = await bookingCollection.find(query).toArray();
+      res.send(bookings);
+    });
+
+    //get all booking information
+    app.get("/admindashboard", async (req, res) => {
+      const email = req.query?.email
+      const query = { email: email, role:"admin" };
+      const isAdmin = await usersCollection.findOne(query);
+  
+      if(!isAdmin){
+        const message = `${userInfo.email} is not admin`
+        return res.send({ acknowledged: false, message })
+      }
+
+      const allBookingInfo = await bookingCollection.find({}).toArray();
+
+      console.log('---All booked items are:', allBookingInfo);
+      res.send(allBookingInfo);
     });
 
     //get services
@@ -79,12 +102,14 @@ async function run() {
     });
 
     //is a normal user
-    app.get("/users/buyer/:email", async (req, res) => {
+    app.get("/users/user/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const user = await usersCollection.findOne(query);
       res.send({ isUser: user?.role === "user" });
     });
+
+
 
     //
   } finally {
