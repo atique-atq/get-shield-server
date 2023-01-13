@@ -21,6 +21,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const serviceCollection = client.db("get-shield").collection("services");
+    const usersCollection = client.db("get-shield").collection("users");
 
     //post a service
     app.post("/service", async (req, res) => {
@@ -29,9 +30,46 @@ async function run() {
       const result = await serviceCollection.insertOne(service);
       res.send(result);
     });
+
+    //save a user
+    app.post("/users", async (req, res) => {
+      const userInfo = req.body;
+      console.log("came to save user!!!");
+
+      //checking if user with same email address already inserted
+      const query = { email: userInfo.email };
+      const alreadyBooked = await usersCollection.find(query).toArray();
+      if (alreadyBooked.length) {
+        const message = `Already registered with email ${userInfo.email}`;
+        return res.send({ acknowledged: false, message });
+      }
+
+      const result = await usersCollection.insertOne(userInfo);
+      res.send(result);
+    });
+
+    //is a admin user
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send({ isAdmin: user?.role === "admin" });
+    });
+
+    //is a normal user
+    app.get("/users/buyer/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      res.send({ isUser: user?.role === "user" });
+    });
+
+    //
   } finally {
+    console.log("came in finally");
   }
 }
+run().catch(console.log);
 
 app.get("/", async (req, res) => {
   res.send("**** getShield is running *****");
